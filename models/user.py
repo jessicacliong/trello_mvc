@@ -10,6 +10,10 @@ class User(db.Model):
   is_admin = db.Column(db.Boolean, default=False)
 
 class UserSchema(ma.Schema):
+  cards = fields.List(fields.Nested('CardSchema', exclude=['user']))
+  #exclude = the schema doesn't include that field
+  #here its done to prevent recursion, user calls cards which calls user which calls cards ...
+
   class Meta:
     fields = ('id', 'name', 'email', 'password', 'is_admin')
 
