@@ -21,6 +21,7 @@ class CommentSchema(ma.Schema):
 
   class Meta:
     fields = ('id', 'message', 'card', 'user')
+    ordered = True
 
 comment_schema = CommentSchema()
 comments_schema = CommentSchema(many=True)

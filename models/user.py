@@ -20,6 +20,7 @@ class UserSchema(ma.Schema):
   comments = fields.List(fields.Nested('CommentSchema', exclude=['user']))
   # exclude = the schema doesn't include that field
   #here its done to prevent recursion, user calls cards which calls user which calls cards ...
+  
   class Meta:
     fields = ('id', 'name', 'email', 'password', 'is_admin', 'cards', 'comments')
 
