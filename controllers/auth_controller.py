@@ -15,10 +15,11 @@ def auth_register():
     body_data = request.get_json()
 
     #ceate a new user model instance from the user info
-    user = User()
+    user = User() # Instance of the User class which is in turn a SQLAlchemy model 
     user.name = body_data.get('name')
     user.email = body_data.get('email')
-    user.password = bcrypt.generate_password_hash(body_data.get('password')).decode('utf-8')
+    if body_data.get('password'):
+      user.password = bcrypt.generate_password_hash(body_data.get('password')).decode('utf-8')
     # Add the user to the session
     db.session.add(user)
     # Commit to add the user to the database
