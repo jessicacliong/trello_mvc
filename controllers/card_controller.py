@@ -16,7 +16,7 @@ def get_all_cards():
 @cards_bp.route('/<int:id>')
 def get_one_card(id):
     stmt = db.select(Card).filter_by(id=id)
-    card = db.session.scalars(stmt)
+    card = db.session.scalar(stmt)
     if card:
         return card_schema.dump(card)
     else:
