@@ -51,7 +51,7 @@ def create_card():
 def delete_one_card(id):
     is_admin = authorise_as_admin 
     if not is_admin:
-        return { 'error': 'Not authorised to delete cards' }, 403
+        return {'error': 'Not authorised to delete cards'}, 403
     stmt = db.select(Card).filter_by(id=id)
     card = db.session.scalar(stmt)
     if card:
@@ -64,10 +64,15 @@ def delete_one_card(id):
 @cards_bp.route('/<int:id>', methods=['PUT','PATCH'])
 @jwt_required()
 def update_one_card(id):
-    body_data = card_schema.load(request.get_json())
+    body_data = card_schema.load(request.get_json(), partial=True)
+    user_id = get_jwt_identity() # the user who sent the request / they are trying to edit
     stmt = db.select(Card).filter_by(id=id)
     card = db.session.scalar(stmt)
+    print(card.user_id)
+    return "Hello"
     if card:
+        if str(card.user_id) != get_jwt_identity():
+            return {'error': 'Only the owner of the card can edit'}, 403
         card.title = body_data.get('title') or card.title
         card.description = body_data.get('description') or card.description
         card.status = body_data.get('status') or card.status
