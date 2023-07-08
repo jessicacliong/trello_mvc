@@ -5,9 +5,22 @@ from models.user import User
 from datetime import date
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from controllers.comment_controller import comments_bp
+import functools
 
 cards_bp = Blueprint('cards', __name__, url_prefix='/cards')
 cards_bp.register_blueprint(comments_bp, url_prefix='/<int:card_id>/comments')
+
+def authorise_as_admin(fn):
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        user_id = get_jwt_identity()
+        stmt = db.select(User).filter_by(id=user_id)
+        user = db.session.scalar(stmt)
+        if user.is_admin:
+            return fn(*args, **kwargs)
+        else:
+            return {'error': 'Not authorised to perform delete'}, 403
+    return wrapper
 
 @cards_bp.route('/')
 def get_all_cards():
@@ -48,10 +61,11 @@ def create_card():
 
 @cards_bp.route('/<int:id>', methods=['DELETE'])
 @jwt_required()
+@authorise_as_admin
 def delete_one_card(id):
-    is_admin = authorise_as_admin 
-    if not is_admin:
-        return {'error': 'Not authorised to delete cards'}, 403
+    # is_admin = authorise_as_admin 
+    # if not is_admin:
+    #     return {'error': 'Not authorised to delete cards'}, 403
     stmt = db.select(Card).filter_by(id=id)
     card = db.session.scalar(stmt)
     if card:
@@ -68,8 +82,6 @@ def update_one_card(id):
     user_id = get_jwt_identity() # the user who sent the request / they are trying to edit
     stmt = db.select(Card).filter_by(id=id)
     card = db.session.scalar(stmt)
-    print(card.user_id)
-    return "Hello"
     if card:
         if str(card.user_id) != get_jwt_identity():
             return {'error': 'Only the owner of the card can edit'}, 403
@@ -82,9 +94,9 @@ def update_one_card(id):
     else:
         return {'error': f'Card not found with id {id}'}, 404
 
-def authorise_as_admin():
-    user_id =  get_jwt_identity()
-    stmt = db.select(User).filter_by(id=user_id)
-    user = db.session.scalar(stmt)
-    #check if user is admin or not
-    return user.is_admin
+# def authorise_as_admin():
+#     user_id =  get_jwt_identity()
+#     stmt = db.select(User).filter_by(id=user_id)
+#     user = db.session.scalar(stmt)
+#     #check if user is admin or not
+#     return user.is_admin
